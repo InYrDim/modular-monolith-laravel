@@ -44,24 +44,46 @@ The host keeps framework glue only:
 3. The host `App\` namespace uses modules only through `Contracts`. Composition-root code outside `App\` (`bootstrap/`, `config/`, `routes/`, `database/seeders/DatabaseSeeder.php`, `tests/`) may reference module classes.
 4. No Eloquent relationships across modules: store the foreign ID and fetch through a contract.
 5. `Identity` never depends on business modules.
-6. Create a contract only when a real consumer exists.
+6. Create a contract only when a real consumer exists, in the same change as that consumer (see [Contracts](#contracts)).
 
-`tests/Arch/ModuleBoundariesTest.php` enforces rules 1–3 and the Identity rule for every `modules/*` directory. It is built dynamically, so new modules are covered automatically.
+`tests/Arch/ModuleBoundariesTest.php` enforces rules 1–3 and the Identity rule for every `modules/*` directory. It also asserts that every module provider is registered in `bootstrap/providers.php`, and that a module's `Contracts` do not depend on that module's internals. The test is built dynamically, so new modules are covered automatically.
+
+## Contracts
+
+Contracts are consumer-driven. A module exposes nothing until another module needs something from it; define the contract when the first consumer arrives, in the same change as that consumer. A contract written before its consumer is a guess: it is shaped by the producer's tables instead of the consumer's needs, and every speculative method becomes API that is expensive to change. Where a contract is needed, its shape follows the consumer, not the database: declare only the methods the consumer uses and return `Contracts\Dto` objects rather than Eloquent models.
+
+```bash
+php artisan make:contract Identity UserDirectory                    # interface only
+php artisan make:contract Identity UserDirectory --dto=UserSummary  # plus a readonly DTO
+```
+
+The command creates `modules/<Name>/src/Contracts/<Contract>.php` (and `Contracts/Dto/<Dto>.php`) in an existing module and refuses to overwrite an existing contract. `make:module` deliberately has no `--contract` option: a contract created together with an empty module has no consumer and would be shaped by the module's tables instead of a consumer's needs. Implementing the contract, binding it in the module provider, and writing the consumer test stay manual because only the consumer knows the required methods. Once `src/Contracts` exists, `tests/Arch/ModuleBoundariesTest.php` enforces that the contracts do not depend on that module's `Models`, `Actions`, `Http`, `Concerns`, or `Providers`.
+
+When the consumer disappears, remove the contract rather than leaving a public API nobody calls.
 
 ## Routes, pages, and frontend
 
 - Module routes load inside the `web` group from the module provider, so `HandleAppearance`, `HandleInertiaRequests`, and `AddLinkHeadersForPreloadedAssets` still apply.
 - Inertia page names are layout keys in `resources/js/app.tsx` (`auth/`, `settings/`, `welcome`); do not rename them.
-- Frontend pages stay in `resources/js/pages/<area>/`, not inside modules.
+- Frontend pages stay in `resources/js/pages/<area>/`, not inside modules. The module generator does not scaffold frontend pages; create `resources/js/pages/<name>/` yourself when the module gets a UI, and never move pages, components, or generated actions into `modules/`.
 - Wayfinder output is generated: run `php artisan wayfinder:generate --with-form` (or `npm run build`) after moving controllers, then update controller-action imports to follow PHP namespaces.
 
 ## Adding a module
 
-1. Create `modules/<Name>/` with `src/`, `database/migrations/`, `routes/`, and `tests/`.
-2. Add PSR-4 entries to `composer.json` for `Modules\<Name>\`, plus `Database\Factories` and `Database\Seeders` if used; run `composer dump-autoload`.
-3. Create `<Name>ServiceProvider` with `loadMigrationsFrom`, route loading in the `web` group, and any bindings; register it in `bootstrap/providers.php`.
-4. Add `modules/<Name>/tests` to `phpunit.xml` and to the `->in(...)` list in `tests/Pest.php`.
-5. Own your tables: migrations live in the module. Never rename an existing migration file.
-6. Expose only what other modules need under `src/Contracts`.
-7. Add frontend pages under `resources/js/pages/<name>/`; add a layout rule in `app.tsx` only if the default `AppLayout` is wrong.
-8. Run `composer ci:check` (or the focused Pint, PHPStan, Pest, and frontend checks).
+Scaffold the module instead of creating files by hand:
+
+```bash
+php artisan make:module Billing        # add --api to also scaffold routes/api.php
+```
+
+The command creates `modules/Billing/{src,database,routes,tests}`, a `BillingServiceProvider` that loads the module migrations and its `web` routes (plus `api` routes with `--api`), adds the PSR-4 mappings to `composer.json`, registers the provider in `bootstrap/providers.php`, and runs `composer dump-autoload` (skip that step with `--no-autoload`).
+
+After scaffolding:
+
+1. Put module code under `modules/<Name>/src` with the `Modules\<Name>` namespace.
+2. Expose only what other modules need under `src/Contracts` (interfaces, DTOs, events), and bind implementations in the module provider. Create a contract only when a real consumer exists.
+3. Own your tables: migrations live in `modules/<Name>/database/migrations`. Never rename an existing migration file.
+4. Add frontend pages under `resources/js/pages/<name>/`; add a layout rule in `app.tsx` only if the default `AppLayout` is wrong.
+5. Run `composer ci:check` (or the focused Pint, PHPStan, Pest, and frontend checks).
+
+Tests are discovered automatically: `phpunit.xml` runs the `Modules` suite from the `modules` directory, and `tests/Pest.php` binds `Tests\TestCase` to `../modules/*/tests`. No registration step is needed for a new module.

@@ -22,7 +22,9 @@ The host is a composition root; domain code lives in `modules/<Name>`. See `docs
 - Modules never import `App\`. Module controllers do not extend `App\Http\Controllers\Controller`.
 - A module is used by others only through its `Contracts` namespace (interfaces, DTOs, events). Never its Models, Actions, Concerns, Http, or Providers.
 - No Eloquent relationships across modules; store the foreign ID and fetch through a Contract.
-- Identity never depends on business modules. Create a Contract only when a real consumer exists.
+- Identity never depends on business modules.
+- Contracts are consumer-driven. Do not add `src/Contracts` while no other module uses the module; a contract is defined when its first real consumer arrives, in the same change as that consumer. Create one with `php artisan make:contract <Module> <Name>` (add `--dto=<Name>` for a readonly DTO), declare only the methods the consumer needs, return `Contracts\Dto` objects instead of models, and bind an implementation in the module provider. This includes `Identity`: leave it without `Contracts` until something consumes it.
+- Do not add a `--contract` option to `make:module`. A contract created at module-creation time has no consumer, so it is pure speculation; `make:contract` adds one to an existing module at the moment the consumer lands. Do not scaffold `src/Contracts` at all in new modules.
 - Never rename or edit an existing migration file; new migrations go in the owning module.
 - Module routes load inside the `web` group from the module's service provider.
 
@@ -30,7 +32,8 @@ The host is a composition root; domain code lives in `modules/<Name>`. See `docs
 
 1. Decide the home: cross-cutting glue stays in the host (`app/`, `routes/web.php`, `resources/js/pages/<area>/`, `tests/Feature/`); a bounded context with its own data, routes, and UI becomes a module under `modules/<Name>/`. Do not create a module for a single endpoint.
 2. Host feature: follow the existing controller, Form Request, Inertia page, and feature-test patterns.
-3. New module: create `modules/<Name>/{src,database,routes,tests}`, add PSR-4 mappings to `composer.json`, create `<Name>ServiceProvider` (migrations, `web` routes, bindings) and register it in `bootstrap/providers.php`, add the test suite to `phpunit.xml` and to `tests/Pest.php`, then run `composer dump-autoload`.
-4. Existing module feature: keep controllers, requests, actions, routes, migrations, and tests inside that module; reach another module only through its `Contracts`.
-5. Frontend: Inertia page names are layout keys in `resources/js/app.tsx` (`auth/`, `settings/`, `welcome`); do not rename them. Module pages go in `resources/js/pages/<name>/`. Regenerate Wayfinder after moving controllers.
-6. Add or update a feature test for behavior changes, then run Pint, PHPStan, Pest, `npm run types:check`, and the frontend build.
+3. New module: run `php artisan make:module <Name>` (add `--api` for `routes/api.php`). It creates `modules/<Name>/{src,database,routes,tests}`, adds the PSR-4 mappings to `composer.json`, registers `<Name>ServiceProvider` in `bootstrap/providers.php`, and runs `composer dump-autoload`. Module tests are discovered automatically (`modules` suite in `phpunit.xml`, `../modules/*/tests` in `tests/Pest.php`), so no test registration is needed.
+4. Existing module feature: keep controllers, requests, actions, routes, migrations, and tests inside that module; reach another module only through its `Contracts`. `tests/Arch/ModuleBoundariesTest.php` also fails when a module provider is missing from `bootstrap/providers.php` or when a module's `Contracts` import that module's `Models`, `Actions`, `Http`, `Concerns`, or `Providers`.
+5. Cross-module need: do not reach into another module's `Models`, `Actions`, or `Http`. Run `php artisan make:contract <OwningModule> <Name>` in the same change as the consumer, add only the methods that consumer uses, implement it inside the owning module, and bind it in that module's provider. Do not define contracts speculatively — shape follows the consumer, not the database.
+6. Frontend: frontend stays in the host, not in modules. `make:module` intentionally does not create `resources/js/pages/<name>/`; add module pages there yourself and never move pages, components, or actions into `modules/`. Inertia page names are layout keys in `resources/js/app.tsx` (`auth/`, `settings/`, `welcome`); do not rename them. Regenerate Wayfinder after moving controllers.
+7. Add or update a feature test for behavior changes, then run Pint, PHPStan, Pest, `npm run types:check`, and the frontend build.

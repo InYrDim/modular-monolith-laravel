@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Support\ModuleScaffolder;
 use Carbon\CarbonImmutable;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -15,7 +18,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(ModuleScaffolder::class, fn (Application $app): ModuleScaffolder => new ModuleScaffolder(
+            new Filesystem,
+            $app->basePath(),
+        ));
     }
 
     /**

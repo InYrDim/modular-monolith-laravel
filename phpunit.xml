@@ -14,8 +14,8 @@
         <testsuite name="Arch">
             <directory>tests/Arch</directory>
         </testsuite>
-        <testsuite name="Identity">
-            <directory>modules/Identity/tests</directory>
+        <testsuite name="Modules">
+            <directory>modules</directory>
         </testsuite>
     </testsuites>
     <source>

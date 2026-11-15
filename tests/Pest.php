@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /*
@@ -16,7 +18,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature', '../modules/Identity/tests');
+    ->in('Feature', '../modules/*/tests');
 
 /*
 |--------------------------------------------------------------------------
@@ -47,4 +49,45 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Create a throwaway application root for scaffolding tests.
+ *
+ * Returns the absolute path of a directory containing a minimal composer.json,
+ * bootstrap/providers.php, and an empty modules directory.
+ */
+function createModuleScaffoldFixture(): string
+{
+    $root = sys_get_temp_dir().DIRECTORY_SEPARATOR.'module-scaffolder-'.Str::random(16);
+    $files = new Filesystem;
+
+    $files->ensureDirectoryExists($root.'/bootstrap');
+    $files->ensureDirectoryExists($root.'/modules');
+
+    $files->put($root.'/composer.json', json_encode([
+        'name' => 'fixture/application',
+        'autoload' => [
+            'psr-4' => [
+                'App\\' => 'app/',
+            ],
+        ],
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n");
+
+    $files->put($root.'/bootstrap/providers.php', <<<'PHP'
+<?php
+
+use App\Providers\AppServiceProvider;
+
+return [
+    AppServiceProvider::class,
+];
+PHP);
+
+    return $root;
+}
+
+function removeModuleScaffoldFixture(string $root): void
+{
+    (new Filesystem)->deleteDirectory($root);
 }
