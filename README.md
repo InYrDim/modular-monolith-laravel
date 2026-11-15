@@ -116,10 +116,6 @@ php artisan test --compact --filter=testName
 
 Module tests are discovered automatically: the `Modules` suite in `phpunit.xml` scans `modules`, and `tests/Pest.php` binds `Tests\TestCase` to `../modules/*/tests`. Architecture tests live under `tests/Arch`.
 
-### Known issue
-
-`npm run check` currently reports formatting issues in Boost-generated agent files (`.agents/`, `.claude/`, `.pi/`, `AGENTS.md`, `boost.json`). Application code and project docs pass; `composer ci:check` stops at this pre-existing failure.
-
 ## License
 
 MIT

@@ -21,8 +21,13 @@
     <source>
         <include>
             <directory>app</directory>
-            <directory>modules/Identity/src</directory>
+            <directory>modules</directory>
         </include>
+        <exclude>
+            <directory>modules/*/database</directory>
+            <directory>modules/*/routes</directory>
+            <directory>modules/*/tests</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
