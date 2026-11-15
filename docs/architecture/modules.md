@@ -4,11 +4,12 @@ This application is a modular monolith: a single Laravel codebase, one deploymen
 
 ## Modules
 
-| Module     | Responsibility                                                                                      | Public contracts |
-| ---------- | --------------------------------------------------------------------------------------------------- | ---------------- |
-| `Identity` | Authentication (Fortify), users, passkeys, two-factor authentication, profile and security settings | None yet         |
+| Module     | Responsibility                                                                                      | Public contracts          |
+| ---------- | --------------------------------------------------------------------------------------------------- | ------------------------- |
+| `Identity` | Authentication (Fortify), users, passkeys, two-factor authentication, profile and security settings | `Contracts\UserDirectory` |
+| `Billing`  | Invoices; reference implementation of a second module                                               | None                      |
 
-Modules expose code to other modules only through their `src/Contracts` namespace. `Identity` has no consumers outside the host composition root, so it has no contracts yet.
+Modules expose code to other modules only through their `src/Contracts` namespace. `Billing` reads user summaries through `Modules\Identity\Contracts\UserDirectory` and stores only the owning user's id, which makes it the reference for a cross-module read.
 
 ## Layout
 
@@ -46,7 +47,7 @@ The host keeps framework glue only:
 5. `Identity` never depends on business modules.
 6. Create a contract only when a real consumer exists, in the same change as that consumer (see [Contracts](#contracts)).
 
-`tests/Arch/ModuleBoundariesTest.php` enforces rules 1–3 and the Identity rule for every `modules/*` directory. It also asserts that every module provider is registered in `bootstrap/providers.php`, and that a module's `Contracts` do not depend on that module's internals. The test is built dynamically, so new modules are covered automatically.
+`tests/Arch/ModuleBoundariesTest.php` enforces rules 1–3 and the Identity rule for every `modules/*` directory. It also asserts that every module provider is registered in `bootstrap/providers.php`, and that a module's `Contracts` do not depend on that module's internals. `tests/Arch/MigrationOwnershipTest.php` keeps domain tables out of the host migrations, and `tests/Arch/FrontendBoundaryTest.php` keeps module pages off other modules' controller actions. The tests are built dynamically, so new modules are covered automatically.
 
 ## Contracts
 
@@ -61,11 +62,23 @@ The command creates `modules/<Name>/src/Contracts/<Contract>.php` (and `Contract
 
 When the consumer disappears, remove the contract rather than leaving a public API nobody calls.
 
+## Cross-module events
+
+Use a contract interface when a module only needs to _read_ data, and an event when it must _react_ to something that happened.
+
+- Publish events other modules may listen to under `Modules\<Name>\Contracts\Events`, with a readonly DTO payload in `Contracts\Dto`. Internal events stay in `Modules\<Name>\Events` and other modules must not import them; `tests/Arch/ModuleBoundariesTest.php` enforces that.
+- Register listeners explicitly in the consuming module's provider with `Event::listen(...)`. Module listeners are **not** auto-discovered (discovery only scans `app/Listeners`), so a listener in `modules/<Name>/src/Listeners` that is never registered fails silently.
+- Queue cross-module side effects with `ShouldQueue`, and use `ShouldQueueAfterCommit` when the event is dispatched inside a database transaction.
+- Delivery is at-least-once: listeners must be idempotent and tolerate duplicates, and event order is not guaranteed.
+- Event payloads are public API: add fields, never change their meaning; introduce a new event class when the shape must change.
+- There is no outbox yet. Add one only if an event must survive a rolled-back transaction.
+
 ## Routes, pages, and frontend
 
 - Module routes load inside the `web` group from the module provider, so `HandleAppearance`, `HandleInertiaRequests`, and `AddLinkHeadersForPreloadedAssets` still apply.
 - Inertia page names are layout keys in `resources/js/app.tsx` (`auth/`, `settings/`, `welcome`); do not rename them.
 - Frontend pages stay in `resources/js/pages/<area>/`, not inside modules. The module generator does not scaffold frontend pages; create `resources/js/pages/<name>/` yourself when the module gets a UI, and never move pages, components, or generated actions into `modules/`.
+- A module's pages never import another module's Wayfinder controller actions (`@/actions/Modules/<Other>/*`); call that module's HTTP routes or add a PHP contract instead. `tests/Arch/FrontendBoundaryTest.php` enforces this for every `resources/js/pages/<module>/` directory.
 - Wayfinder output is generated: run `php artisan wayfinder:generate --with-form` (or `npm run build`) after moving controllers, then update controller-action imports to follow PHP namespaces.
 
 ## Module provider

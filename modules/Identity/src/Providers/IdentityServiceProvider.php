@@ -14,6 +14,8 @@ use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Modules\Identity\Actions\Fortify\CreateNewUser;
 use Modules\Identity\Actions\Fortify\ResetUserPassword;
+use Modules\Identity\Contracts\UserDirectory;
+use Modules\Identity\Queries\EloquentUserDirectory;
 
 class IdentityServiceProvider extends ServiceProvider
 {
@@ -22,7 +24,7 @@ class IdentityServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(UserDirectory::class, EloquentUserDirectory::class);
     }
 
     /**

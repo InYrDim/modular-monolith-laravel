@@ -27,6 +27,9 @@ The host is a composition root; domain code lives in `modules/<Name>`. See `docs
 - Do not add a `--contract` option to `make:module`. A contract created at module-creation time has no consumer, so it is pure speculation; `make:contract` adds one to an existing module at the moment the consumer lands. Do not scaffold `src/Contracts` at all in new modules.
 - Never rename or edit an existing migration file; new migrations go in the owning module.
 - Module routes load inside the `web` group from the module's service provider.
+- Cross-module reactions use events published under `Contracts\Events`, and the consumer registers its listener explicitly in its provider. Module listeners are not auto-discovered, so an unregistered listener fails silently.
+- Module pages in `resources/js/pages/<module>/` never import another module's `@/actions/Modules/<Other>/*`; use that module's routes or a PHP contract. `tests/Arch/FrontendBoundaryTest.php` enforces it.
+- Host migrations create infrastructure tables only; domain tables belong in the owning module's migrations. `tests/Arch/MigrationOwnershipTest.php` enforces it.
 
 ## Module provider
 
@@ -53,4 +56,4 @@ No API route file is generated, because the host has not decided its API contrac
 4. Existing module feature: keep controllers, requests, actions, routes, migrations, and tests inside that module; reach another module only through its `Contracts`. `tests/Arch/ModuleBoundariesTest.php` also fails when a module provider is missing from `bootstrap/providers.php` or when a module's `Contracts` import that module's `Models`, `Actions`, `Http`, `Concerns`, or `Providers`.
 5. Cross-module need: do not reach into another module's `Models`, `Actions`, or `Http`. Run `php artisan make:contract <OwningModule> <Name>` in the same change as the consumer, add only the methods that consumer uses, implement it inside the owning module, and bind it in that module's provider. Do not define contracts speculatively — shape follows the consumer, not the database.
 6. Frontend: frontend stays in the host, not in modules. `make:module` intentionally does not create `resources/js/pages/<name>/`; add module pages there yourself and never move pages, components, or actions into `modules/`. Inertia page names are layout keys in `resources/js/app.tsx` (`auth/`, `settings/`, `welcome`); do not rename them. Regenerate Wayfinder after moving controllers.
-7. Add or update a feature test for behavior changes, then run Pint, PHPStan, Pest, `npm run types:check`, and the frontend build.
+7. Add or update a feature test for behavior changes, then run Pint, PHPStan, Pest, `npm run types:check`, and the frontend build. PHPStan analyses `tests/` as well, so keep test code type-clean.
