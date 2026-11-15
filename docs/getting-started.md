@@ -32,15 +32,17 @@ Keep the original history only if you want the template's commits; a fresh histo
 - `app/Http/Middleware/HandleAppearance.php` — light/dark mode plumbing; keep only if the product supports it
 - `tests/Arch/*` — keep all of it; the boundary tests are the architecture
 
-## 5. Keep one copy of the agent tooling
+## 5. Agent tooling
 
-The template carries overlapping skill copies. This branch keeps:
+The template carries per-tool copies of the same skills. Keep every directory your tools read:
 
 - `.ai/rules/` — project rules (the source of truth for agents)
 - `.agents/` — shared skills, including `security-audit`
+- `.claude/` — Claude Code skills
 - `.pi/` — skills for the pi harness
+- `AGENTS.md` and `CLAUDE.md` — agent instructions; do not delete them
 
-Prune whichever directory your agent tool does not read, and keep `AGENTS.md` + `boost.json` in sync. Do not let three copies drift.
+The skill directories are duplicated per tool on purpose. Update them together when a skill changes (`skills-lock.json` records the installs).
 
 ## 6. Decide infrastructure now
 
