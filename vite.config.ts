@@ -82,6 +82,7 @@ export default defineConfig({
             'AGENTS.md',
             'boost.json',
             'composer.json',
+            'skills-lock.json',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
         ],
