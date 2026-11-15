@@ -21,13 +21,16 @@ A Laravel 13 application with an Inertia v3 + React 19 frontend, organized as a 
 
 ## Getting started
 
-On a fresh checkout, create the SQLite database file and let the setup script install dependencies, create `.env`, generate the key, migrate, and build the frontend:
+Starting a real product? Follow [docs/getting-started.md](docs/getting-started.md) once — it covers renaming the app, auth defaults, and infrastructure choices.
+
+On a fresh checkout, let the setup script install dependencies, create `.env`, generate the key, migrate, and build the frontend:
 
 ```bash
-touch database/database.sqlite
 composer setup
 composer dev
 ```
+
+`composer setup` creates `database/database.sqlite` if it is missing.
 
 `composer dev` starts the development processes: the HTTP server, Vite, a queue listener, and logs when the platform supports them. Open the URL it prints, by default <http://localhost:8000>.
 
@@ -37,7 +40,6 @@ composer dev
 composer install
 cp .env.example .env
 php artisan key:generate
-touch database/database.sqlite
 php artisan migrate
 npm install
 npm run build
@@ -63,7 +65,6 @@ One deployable Laravel application with explicit module boundaries:
 ```text
 app/                      Host glue: base controller, middleware, service provider
 modules/Identity/         Users, auth, passkeys, 2FA, profile and security settings
-modules/Billing/          Invoices; reference module consuming Identity\Contracts\UserDirectory
 bootstrap/providers.php   Registers host and module service providers
 routes/web.php            Host routes (home, dashboard)
 resources/js/             React pages, layouts, components, generated Wayfinder code

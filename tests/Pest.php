@@ -46,11 +46,6 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something(): void
-{
-    // ..
-}
-
 /**
  * Create a throwaway application root for scaffolding tests.
  *
