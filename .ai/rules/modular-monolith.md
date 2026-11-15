@@ -14,7 +14,11 @@ paths:
 
 # Modular monolith rules
 
-The host is a composition root; domain code lives in `modules/<Name>`. See `docs/architecture/modules.md` for the layout and the full module checklist.
+The host is a composition root; domain code lives in `modules/<Name>`. See `docs/architecture/modules.md` for the layout and the full module checklist, and `docs/getting-started.md` for the one-time project bootstrap (rename, auth features, infrastructure).
+
+## Starting a product
+
+This repository began as a template and was cleaned on day one: no `Billing` example module, no seeded test user, no placeholder tests. Do not reintroduce demo modules. `git log` keeps the `Billing` reference implementation if a worked cross-module example is needed.
 
 ## Boundaries
 
