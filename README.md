@@ -6,7 +6,7 @@ A Laravel 13 application with an Inertia v3 + React 19 frontend, organized as a 
 
 | Layer    | Technology                                     |
 | -------- | ---------------------------------------------- |
-| Backend  | PHP 8.3+, Laravel 13, Laravel Fortify          |
+| Backend  | PHP 8.4+, Laravel 13, Laravel Fortify          |
 | Frontend | React 19, TypeScript, Inertia v3               |
 | Styling  | Tailwind CSS 4, Radix UI, Sonner               |
 | Build    | Vite+ (`vp`), Laravel Wayfinder                |
@@ -14,7 +14,7 @@ A Laravel 13 application with an Inertia v3 + React 19 frontend, organized as a 
 
 ## Requirements
 
-- PHP 8.3 or newer (CI uses 8.4)
+- PHP 8.4 or newer (CI uses 8.4)
 - Composer 2
 - Node.js 22 and npm
 - SQLite (default) or another Laravel-supported database
