@@ -34,7 +34,10 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Modules\\Identity\\": "modules/Identity/src/",
+            "Modules\\Identity\\Database\\Factories\\": "modules/Identity/database/factories/",
+            "Modules\\Identity\\Database\\Seeders\\": "modules/Identity/database/seeders/"
         }
     },
     "autoload-dev": {
