@@ -4,9 +4,9 @@ This application is a modular monolith: a single Laravel codebase, one deploymen
 
 ## Modules
 
-| Module | Responsibility | Public contracts |
-| --- | --- | --- |
-| `Identity` | Authentication (Fortify), users, passkeys, two-factor authentication, profile and security settings | None yet |
+| Module     | Responsibility                                                                                      | Public contracts |
+| ---------- | --------------------------------------------------------------------------------------------------- | ---------------- |
+| `Identity` | Authentication (Fortify), users, passkeys, two-factor authentication, profile and security settings | None yet         |
 
 Modules expose code to other modules only through their `src/Contracts` namespace. `Identity` has no consumers outside the host composition root, so it has no contracts yet.
 
@@ -14,28 +14,28 @@ Modules expose code to other modules only through their `src/Contracts` namespac
 
 `modules/<Name>/` owns one bounded context:
 
-| Path | Purpose |
-| --- | --- |
-| `src/` | Module code, PSR-4 namespace `Modules\<Name>` |
-| `src/Contracts/` | Public API: interfaces, DTOs, events (only when a real consumer exists) |
-| `src/Providers/<Name>ServiceProvider.php` | Registers routes, migrations, and bindings; listed in `bootstrap/providers.php` |
-| `database/migrations/` | Migrations owned by the module, loaded by the provider |
-| `database/factories/`, `database/seeders/` | Module data helpers, PSR-4 under `Modules\<Name>\Database\...` |
-| `routes/web.php` | Routes loaded inside the `web` middleware group by the provider |
-| `tests/` | Module tests, discovered through `phpunit.xml` and `tests/Pest.php` |
+| Path                                       | Purpose                                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------------------- |
+| `src/`                                     | Module code, PSR-4 namespace `Modules\<Name>`                                   |
+| `src/Contracts/`                           | Public API: interfaces, DTOs, events (only when a real consumer exists)         |
+| `src/Providers/<Name>ServiceProvider.php`  | Registers routes, migrations, and bindings; listed in `bootstrap/providers.php` |
+| `database/migrations/`                     | Migrations owned by the module, loaded by the provider                          |
+| `database/factories/`, `database/seeders/` | Module data helpers, PSR-4 under `Modules\<Name>\Database\...`                  |
+| `routes/web.php`                           | Routes loaded inside the `web` middleware group by the provider                 |
+| `tests/`                                   | Module tests, discovered through `phpunit.xml` and `tests/Pest.php`             |
 
 The host keeps framework glue only:
 
-| Path | Role |
-| --- | --- |
-| `app/Http/Controllers/Controller.php` | Empty base controller; modules do not extend it |
-| `app/Http/Middleware/` | `HandleAppearance`, `HandleInertiaRequests` |
-| `app/Providers/AppServiceProvider.php` | Cross-cutting defaults |
-| `routes/web.php`, `routes/console.php` | Host routes and console commands |
-| `database/migrations/` | Infrastructure migrations (cache, jobs) |
-| `database/seeders/DatabaseSeeder.php` | Calls module seeders |
-| `tests/Feature/`, `tests/Unit/`, `tests/Arch/` | Host tests and boundary tests |
-| `resources/` | Shared Inertia/React frontend (not modularized) |
+| Path                                           | Role                                            |
+| ---------------------------------------------- | ----------------------------------------------- |
+| `app/Http/Controllers/Controller.php`          | Empty base controller; modules do not extend it |
+| `app/Http/Middleware/`                         | `HandleAppearance`, `HandleInertiaRequests`     |
+| `app/Providers/AppServiceProvider.php`         | Cross-cutting defaults                          |
+| `routes/web.php`, `routes/console.php`         | Host routes and console commands                |
+| `database/migrations/`                         | Infrastructure migrations (cache, jobs)         |
+| `database/seeders/DatabaseSeeder.php`          | Calls module seeders                            |
+| `tests/Feature/`, `tests/Unit/`, `tests/Arch/` | Host tests and boundary tests                   |
+| `resources/`                                   | Shared Inertia/React frontend (not modularized) |
 
 ## Dependency rules
 

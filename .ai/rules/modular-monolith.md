@@ -1,9 +1,9 @@
 ---
 paths:
-  - 'modules/**'
-  - 'app/**'
-  - 'tests/Arch/**'
-  - 'composer.json'
+    - 'modules/**'
+    - 'app/**'
+    - 'tests/Arch/**'
+    - 'composer.json'
 ---
 
 # Modular monolith rules
