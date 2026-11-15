@@ -43,21 +43,6 @@ it('creates the module layout and registers it with the host', function () {
     }
 });
 
-it('scaffolds api routes only when requested', function () {
-    $root = createModuleScaffoldFixture();
-
-    try {
-        (new ModuleScaffolder(new Filesystem, $root))->scaffold('Billing', withApiRoutes: true);
-
-        $provider = (string) file_get_contents($root.'/modules/Billing/src/Providers/BillingServiceProvider.php');
-
-        expect($root.'/modules/Billing/routes/api.php')->toBeFile()
-            ->and($provider)->toContain("Route::middleware('api')->prefix('api')->group(__DIR__.'/../../routes/api.php')");
-    } finally {
-        removeModuleScaffoldFixture($root);
-    }
-});
-
 it('does not duplicate registrations when the same module is scaffolded twice', function () {
     $root = createModuleScaffoldFixture();
 

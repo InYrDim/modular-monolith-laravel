@@ -83,7 +83,7 @@ See [docs/architecture/modules.md](docs/architecture/modules.md) for the full la
 ### Adding a feature
 
 - Cross-cutting glue stays in the host: controllers under `app/Http/Controllers`, routes in `routes/web.php`, pages in `resources/js/pages/<area>/`, tests in `tests/Feature/`.
-- A bounded context with its own data, routes, and UI becomes a module under `modules/<Name>/`. Scaffold it with `php artisan make:module <Name>` (add `--api` for `routes/api.php`); the command creates the module, registers its provider, and adds the PSR-4 mappings.
+- A bounded context with its own data, routes, and UI becomes a module under `modules/<Name>/`. Scaffold it with `php artisan make:module <Name>`; the command creates the module, registers its provider, and adds the PSR-4 mappings.
 - Keep controllers, requests, actions, routes, migrations, and tests inside the owning module.
 - Reach another module only through its `Contracts`, defined when the first consumer needs them: `php artisan make:contract <Module> <Name>` (add `--dto=<Name>` for a readonly DTO). Do not predefine contracts.
 - Regenerate Wayfinder after moving controllers (`php artisan wayfinder:generate --with-form`); the Vite plugin also regenerates during builds.

@@ -54,7 +54,7 @@ class ModuleScaffolder
     /**
      * @return list<string> The absolute paths that were created or updated.
      */
-    public function scaffold(string $module, bool $withApiRoutes = false): array
+    public function scaffold(string $module): array
     {
         $modulePath = $this->modulePath($module);
 
@@ -65,14 +65,10 @@ class ModuleScaffolder
         $paths = [
             $this->write(
                 $modulePath.'/src/Providers/'.$module.'ServiceProvider.php',
-                $this->providerStub($module, $withApiRoutes),
+                $this->providerStub($module),
             ),
-            $this->write($modulePath.'/routes/web.php', $this->routesStub($module, 'web')),
+            $this->write($modulePath.'/routes/web.php', $this->routesStub($module)),
         ];
-
-        if ($withApiRoutes) {
-            $paths[] = $this->write($modulePath.'/routes/api.php', $this->routesStub($module, 'api'));
-        }
 
         $paths[] = $this->registerAutoload($module);
         $paths[] = $this->registerProvider($module);
@@ -256,12 +252,8 @@ class ModuleScaffolder
         return $path;
     }
 
-    private function providerStub(string $module, bool $withApiRoutes): string
+    private function providerStub(string $module): string
     {
-        $apiRoutes = $withApiRoutes
-            ? "            Route::middleware('api')->prefix('api')->group(__DIR__.'/../../routes/api.php');\n"
-            : '';
-
         $stub = <<<'PHP'
 <?php
 
@@ -289,27 +281,20 @@ class {{module}}ServiceProvider extends ServiceProvider
 
         if (! $this->app->routesAreCached()) {
             Route::middleware('web')->group(__DIR__.'/../../routes/web.php');
-{{apiRoutes}}        }
+        }
     }
 }
 PHP;
 
-        return strtr($stub, [
-            '{{module}}' => $module,
-            '{{apiRoutes}}' => $apiRoutes,
-        ])."\n";
+        return strtr($stub, ['{{module}}' => $module])."\n";
     }
 
-    private function routesStub(string $module, string $group): string
+    private function routesStub(string $module): string
     {
-        $middleware = $group === 'api'
-            ? 'inside the "api" middleware group under the "api" prefix'
-            : 'inside the "web" middleware group';
-
         return <<<PHP
 <?php
 
-// {$module} routes. Loaded {$middleware} by {$module}ServiceProvider.
+// {$module} routes. Loaded inside the "web" middleware group by {$module}ServiceProvider.
 PHP."\n";
     }
 

@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 
 #[Signature('make:module
     {name : The module name, for example "Billing"}
-    {--api : Also scaffold routes/api.php for the module}
     {--no-autoload : Skip regenerating the Composer autoloader}')]
 #[Description('Create a new module and register it with the host application')]
 class MakeModuleCommand extends Command
@@ -33,7 +32,7 @@ class MakeModuleCommand extends Command
             return self::FAILURE;
         }
 
-        foreach ($scaffolder->scaffold($module, withApiRoutes: (bool) $this->option('api')) as $path) {
+        foreach ($scaffolder->scaffold($module) as $path) {
             $this->components->twoColumnDetail(
                 Str::after($path, $scaffolder->rootPath().DIRECTORY_SEPARATOR),
                 '<fg=green;options=bold>CREATED</>',

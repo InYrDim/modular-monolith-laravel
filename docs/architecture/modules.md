@@ -14,15 +14,15 @@ Modules expose code to other modules only through their `src/Contracts` namespac
 
 `modules/<Name>/` owns one bounded context:
 
-| Path                                       | Purpose                                                                         |
-| ------------------------------------------ | ------------------------------------------------------------------------------- |
-| `src/`                                     | Module code, PSR-4 namespace `Modules\<Name>`                                   |
-| `src/Contracts/`                           | Public API: interfaces, DTOs, events (only when a real consumer exists)         |
-| `src/Providers/<Name>ServiceProvider.php`  | Registers routes, migrations, and bindings; listed in `bootstrap/providers.php` |
-| `database/migrations/`                     | Migrations owned by the module, loaded by the provider                          |
-| `database/factories/`, `database/seeders/` | Module data helpers, PSR-4 under `Modules\<Name>\Database\...`                  |
-| `routes/web.php`                           | Routes loaded inside the `web` middleware group by the provider                 |
-| `tests/`                                   | Module tests, discovered through `phpunit.xml` and `tests/Pest.php`             |
+| Path                                       | Purpose                                                                                            |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `src/`                                     | Module code, PSR-4 namespace `Modules\<Name>`                                                      |
+| `src/Contracts/`                           | Public API: interfaces, DTOs, events (only when a real consumer exists)                            |
+| `src/Providers/<Name>ServiceProvider.php`  | Registers routes, migrations, bindings, and any module wiring; listed in `bootstrap/providers.php` |
+| `database/migrations/`                     | Migrations owned by the module, loaded by the provider                                             |
+| `database/factories/`, `database/seeders/` | Module data helpers, PSR-4 under `Modules\<Name>\Database\...`                                     |
+| `routes/web.php`                           | Routes loaded inside the `web` middleware group by the provider                                    |
+| `tests/`                                   | Module tests, discovered through `phpunit.xml` and `tests/Pest.php`                                |
 
 The host keeps framework glue only:
 
@@ -68,22 +68,44 @@ When the consumer disappears, remove the contract rather than leaving a public A
 - Frontend pages stay in `resources/js/pages/<area>/`, not inside modules. The module generator does not scaffold frontend pages; create `resources/js/pages/<name>/` yourself when the module gets a UI, and never move pages, components, or generated actions into `modules/`.
 - Wayfinder output is generated: run `php artisan wayfinder:generate --with-form` (or `npm run build`) after moving controllers, then update controller-action imports to follow PHP namespaces.
 
+## Module provider
+
+`make:module` generates a deliberately minimal provider: module migrations and `web` routes. Everything else is registered when the module actually gains that piece — do not scaffold wiring for files that do not exist. `mergeConfigFrom` `require`s its file, so wiring it without a config file throws; unused registrations are dead code the next reader has to reason about.
+
+Add wiring to `modules/<Name>/src/Providers/<Name>ServiceProvider.php` when the module gains the thing:
+
+| Need               | Location                         | Registration                                                                                                                        |
+| ------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Migrations         | `database/migrations/`           | `loadMigrationsFrom()` — already generated                                                                                          |
+| Routes             | `routes/web.php`                 | `Route::middleware('web')->group(...)` — already generated. No `routes/api.php` is generated; see the API note below                |
+| Translations       | `lang/`                          | `loadTranslationsFrom($dir, '<name>')`                                                                                              |
+| Views              | `resources/views/`               | `loadViewsFrom($dir, '<name>')`                                                                                                     |
+| Config             | `config/<name>.php`              | `mergeConfigFrom($path, '<name>')` — create the config file first                                                                   |
+| Console commands   | anywhere in the module           | `$this->commands([...])` — module commands are **not** auto-discovered; discovery only scans `app/Console/Commands`                 |
+| Event listeners    | `src/Listeners/`                 | `Event::listen(Event::class, Listener::class)` — module listeners are **not** auto-discovered; discovery only scans `app/Listeners` |
+| Policies           | `src/Policies/<Model>Policy.php` | None needed if it follows the convention (`Modules\<Name>\Policies\<Model>Policy`); otherwise `Gate::policy(...)`                   |
+| Broadcast channels | `src/Channels/`                  | `Broadcast::channel(...)`                                                                                                           |
+| Blade components   | `resources/views/components/`    | `Blade::componentNamespace(...)`                                                                                                    |
+
+No API route file is generated, because the host has not decided its API contract. `bootstrap/app.php` does not call `withRouting(api: ...)`, the `api` middleware group has no throttling (`apiLimiter` is unset), there is no versioning or token auth (Sanctum is not installed), and `PreventRequestForgery` only runs in the `web` group — so a session-authenticated `api` route would be CSRF-exposed. If a module needs an API, settle those host-level concerns first (prefix or version such as `/api/v1`, rate limiter, auth guard, CSRF stance, success payload shape), then add `routes/api.php` and register it in the module provider.
+
 ## Adding a module
 
 Scaffold the module instead of creating files by hand:
 
 ```bash
-php artisan make:module Billing        # add --api to also scaffold routes/api.php
+php artisan make:module Billing
 ```
 
-The command creates `modules/Billing/{src,database,routes,tests}`, a `BillingServiceProvider` that loads the module migrations and its `web` routes (plus `api` routes with `--api`), adds the PSR-4 mappings to `composer.json`, registers the provider in `bootstrap/providers.php`, and runs `composer dump-autoload` (skip that step with `--no-autoload`).
+The command creates `modules/Billing/{src,database,routes,tests}`, a `BillingServiceProvider` that loads the module migrations and its `web` routes, adds the PSR-4 mappings to `composer.json`, registers the provider in `bootstrap/providers.php`, and runs `composer dump-autoload` (skip that step with `--no-autoload`).
 
 After scaffolding:
 
 1. Put module code under `modules/<Name>/src` with the `Modules\<Name>` namespace.
 2. Expose only what other modules need under `src/Contracts` (interfaces, DTOs, events), and bind implementations in the module provider. Create a contract only when a real consumer exists.
 3. Own your tables: migrations live in `modules/<Name>/database/migrations`. Never rename an existing migration file.
-4. Add frontend pages under `resources/js/pages/<name>/`; add a layout rule in `app.tsx` only if the default `AppLayout` is wrong.
-5. Run `composer ci:check` (or the focused Pint, PHPStan, Pest, and frontend checks).
+4. Register what the module gains in its provider — translations, views, config, commands, listeners, policies, channels — following [Module provider](#module-provider). Nothing else is wired by default.
+5. Add frontend pages under `resources/js/pages/<name>/`; add a layout rule in `app.tsx` only if the default `AppLayout` is wrong.
+6. Run `composer ci:check` (or the focused Pint, PHPStan, Pest, and frontend checks).
 
 Tests are discovered automatically: `phpunit.xml` runs the `Modules` suite from the `modules` directory, and `tests/Pest.php` binds `Tests\TestCase` to `../modules/*/tests`. No registration step is needed for a new module.
