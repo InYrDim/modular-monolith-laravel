@@ -10,8 +10,12 @@ parameters:
         - database/
         - modules/
         - routes/
+        - tests/
 
-    excludePaths:
-        - modules/*/tests/*
+    ignoreErrors:
+        # Pest's higher-order test API and expectation mixin are dynamic.
+        - '#Call to an undefined method Pest.PendingCalls.TestCall::.*#'
+        - '#Access to an undefined property Pest.PendingCalls.TestCall::.*#'
+        - '#Access to an undefined property Pest.Mixins.Expectation.*::.*#'
 
     level: 7

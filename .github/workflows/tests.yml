@@ -18,6 +18,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+
+      - name: Ensure existing migrations are immutable
+        if: github.event_name == 'pull_request'
+        run: |
+          changed=$(git diff --diff-filter=M --name-only "origin/${{ github.base_ref }}...HEAD" -- 'database/migrations' 'modules/*/database/migrations')
+          if [ -n "$changed" ]; then
+            echo "Existing migrations must not be edited. Add a new migration instead:"
+            echo "$changed"
+            exit 1
+          fi
 
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
