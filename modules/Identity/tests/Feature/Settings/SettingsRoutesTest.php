@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Identity\Models\User;
 
 test('settings redirects to the profile settings page', function () {
     $user = User::factory()->create();

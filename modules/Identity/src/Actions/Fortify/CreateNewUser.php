@@ -2,11 +2,11 @@
 
 namespace Modules\Identity\Actions\Fortify;
 
-use App\Models\User;
-use Modules\Identity\Concerns\PasswordValidationRules;
-use Modules\Identity\Concerns\ProfileValidationRules;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Modules\Identity\Concerns\PasswordValidationRules;
+use Modules\Identity\Concerns\ProfileValidationRules;
+use Modules\Identity\Models\User;
 
 class CreateNewUser implements CreatesNewUsers
 {
