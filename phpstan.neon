@@ -8,6 +8,10 @@ parameters:
         - bootstrap/app.php
         - config/
         - database/
+        - modules/
         - routes/
+
+    excludePaths:
+        - modules/*/tests/*
 
     level: 7
