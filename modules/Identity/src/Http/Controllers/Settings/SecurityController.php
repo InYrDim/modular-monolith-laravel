@@ -2,13 +2,13 @@
 
 namespace Modules\Identity\Http\Controllers\Settings;
 
-use Modules\Identity\Http\Requests\Settings\PasswordUpdateRequest;
-use Modules\Identity\Http\Requests\Settings\TwoFactorAuthenticationRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
+use Modules\Identity\Http\Requests\Settings\PasswordUpdateRequest;
+use Modules\Identity\Http\Requests\Settings\TwoFactorAuthenticationRequest;
 
 class SecurityController
 {

@@ -2,9 +2,9 @@
 
 namespace Modules\Identity\Http\Requests\Settings;
 
-use Modules\Identity\Concerns\PasswordValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Identity\Concerns\PasswordValidationRules;
 
 class PasswordUpdateRequest extends FormRequest
 {

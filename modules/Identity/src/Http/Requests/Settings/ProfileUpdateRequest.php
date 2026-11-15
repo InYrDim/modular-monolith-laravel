@@ -2,10 +2,10 @@
 
 namespace Modules\Identity\Http\Requests\Settings;
 
-use Modules\Identity\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Modules\Identity\Concerns\ProfileValidationRules;
 
 class ProfileUpdateRequest extends FormRequest
 {
