@@ -65,13 +65,25 @@ The first `migrate` creates `database/database.sqlite` if it does not exist.
 
 ## 8. Before production
 
-- `APP_DEBUG=false`, `php artisan optimize` in the deploy step
+- `APP_ENV=production`, `APP_DEBUG=false`, `php artisan optimize` in the deploy step. The environment name is not cosmetic: `production` is what enables the strict password policy (12+ characters, mixed case, symbols, breach check), the destructive-command guard, and `https` on generated URLs
+- `APP_URL` set to the real public origin. It pins the root of every absolute URL (password reset, email verification, redirects) and `trustHosts()` derives its allowlist from its host
+- `SESSION_SECURE_COOKIE=true`, plus `SESSION_DOMAIN` and `SESSION_SAME_SITE` if the session has to cross subdomains
+- `TRUSTED_PROXIES` set to the load balancer or proxy ranges when TLS terminates upstream, so the application sees the original scheme. Never set it to `*` on an internet-reachable host
+- Host trust: `bootstrap/app.php` enables `trustHosts()`, which trusts `APP_URL` and its subdomains. It is inactive while `APP_ENV=local`; in every other environment a wrong `APP_URL` rejects every request with HTTP 400
 - Queue worker and scheduler running (Supervisor or Laravel Cloud)
 - Real mail transport, verified domain, and a test send
 - Backups for the database and `storage/`
 - Error tracking (Sentry, Flare) and log retention
-- HTTPS and a trusted proxy configuration
 - Authorization: policies are discovered per module by convention (`Modules\<Name>\Policies\<Model>Policy`), but there is **no roles/permissions model** yet — design it early if the product needs it
+
+Smoke-check the host and URL configuration after the first deploy; neither request needs an account:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://example.com/up                        # 200
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: evil.test' https://example.com/up   # 400
+```
+
+A 200 on the second line means host trust is not in effect — usually because `APP_ENV` is still `local` or `APP_URL` has no host. A 400 on the first line means `APP_URL` does not match the host the load balancer sends.
 
 ## 9. What this template deliberately does not include
 

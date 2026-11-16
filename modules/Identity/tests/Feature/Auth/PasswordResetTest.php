@@ -64,6 +64,26 @@ test('password can be reset with valid token', function () {
     });
 });
 
+test('password reset link ignores a foreign host header', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $this->post('http://attacker.example'.route('password.email', absolute: false), [
+        'email' => $user->email,
+    ])->assertSessionHasNoErrors();
+
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        $actionUrl = (string) $notification->toMail($user)->actionUrl;
+
+        expect(parse_url($actionUrl, PHP_URL_HOST))
+            ->toBe(parse_url(config()->string('app.url'), PHP_URL_HOST))
+            ->and($actionUrl)->not->toContain('attacker.example');
+
+        return true;
+    });
+});
+
 test('password cannot be reset with invalid token', function () {
     $user = User::factory()->create();
 
