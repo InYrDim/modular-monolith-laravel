@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Reject a request whose Host is not APP_URL or one of its subdomains, so a
+        // caller-supplied Host cannot reach URL generation. Inactive while the
+        // environment is "local" and during tests.
+        $middleware->trustHosts();
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

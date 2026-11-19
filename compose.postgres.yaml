@@ -1,0 +1,75 @@
+# Overlay: switch the stack to Postgres + Redis.
+#   docker compose -f compose.yaml -f compose.postgres.yaml up -d --build
+# Credentials here are for local use only; production injects its own.
+
+x-services-env: &services-env
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: '5432'
+    DB_DATABASE: app
+    DB_USERNAME: app
+    DB_PASSWORD: secret
+    REDIS_HOST: redis
+    REDIS_PORT: '6379'
+    SESSION_DRIVER: redis
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+
+x-depends: &services-depends
+    migrate:
+        condition: service_completed_successfully
+    postgres:
+        condition: service_healthy
+    redis:
+        condition: service_healthy
+
+services:
+    migrate:
+        environment: *services-env
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+    app:
+        environment: *services-env
+        depends_on: *services-depends
+
+    queue:
+        environment: *services-env
+        depends_on: *services-depends
+
+    scheduler:
+        environment: *services-env
+        depends_on: *services-depends
+
+    postgres:
+        image: postgres:18-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: app
+            POSTGRES_USER: app
+            POSTGRES_PASSWORD: secret
+        volumes:
+            - postgres:/var/lib/postgresql
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U app -d app']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+    redis:
+        image: redis:8-alpine
+        restart: unless-stopped
+        volumes:
+            - redis:/data
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+volumes:
+    postgres:
+    redis:

@@ -21,13 +21,16 @@ A Laravel 13 application with an Inertia v3 + React 19 frontend, organized as a 
 
 ## Getting started
 
-On a fresh checkout, create the SQLite database file and let the setup script install dependencies, create `.env`, generate the key, migrate, and build the frontend:
+Starting a real product? Follow [docs/getting-started.md](docs/getting-started.md) once — it covers renaming the app, auth defaults, and infrastructure choices.
+
+On a fresh checkout, let the setup script install dependencies, create `.env`, generate the key, migrate, and build the frontend:
 
 ```bash
-touch database/database.sqlite
 composer setup
 composer dev
 ```
+
+`composer setup` creates `database/database.sqlite` if it is missing.
 
 `composer dev` starts the development processes: the HTTP server, Vite, a queue listener, and logs when the platform supports them. Open the URL it prints, by default <http://localhost:8000>.
 
@@ -37,7 +40,6 @@ composer dev
 composer install
 cp .env.example .env
 php artisan key:generate
-touch database/database.sqlite
 php artisan migrate
 npm install
 npm run build
@@ -52,6 +54,37 @@ npm run dev
 
 If Laravel Herd serves the project, use the Herd site URL for this directory (for example `https://<directory>.test`) instead of `php artisan serve`, and run `npm run dev` for assets.
 
+## Docker
+
+The repository ships a production-style image: FrankenPHP (Caddy + PHP 8.4) in classic mode, running as `www-data` on port 8080. Herd or `composer dev` stays the development loop. Use Docker to run or deploy the built app.
+
+```bash
+APP_KEY=$(php artisan key:generate --show) docker compose up -d --build
+```
+
+`compose.yaml` starts these services:
+
+- `migrate` runs once.
+- `app` serves <http://localhost:8080>, with a healthcheck on `/up`.
+- `queue` runs `queue:work`.
+- `scheduler` runs `schedule:work`.
+
+By default the stack uses SQLite, stored in the `storage` volume. To switch to Postgres and Redis, add the overlay:
+
+```bash
+docker compose -f compose.yaml -f compose.postgres.yaml up -d --build
+```
+
+| File                     | Purpose                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `Dockerfile`             | Multi-stage build: Composer deps, then Vite (with PHP, for Wayfinder), then the slim `production` stage |
+| `docker/entrypoint.sh`   | Creates storage dirs and the SQLite file, then runs `php artisan optimize` at start (never at build)    |
+| `docker/php/php.ini`     | Production PHP overrides (OPcache without timestamp checks, so redeploy to change code)                 |
+| `docker/healthcheck.php` | Hits `/up` with the `APP_URL` host, because `trustHosts()` rejects any other host outside `local`       |
+| `compose.postgres.yaml`  | Postgres 18 and Redis 8 for the database, cache, session, and queue (local credentials only)            |
+
+`APP_ENV` is `production`, so `APP_URL` must match the host the browser uses. To change the port, `APP_URL`, mail, or anything else locally, add a `compose.override.yaml`. In real deployments, set `APP_KEY` and the other secrets in the platform's environment. Set `TRUSTED_PROXIES` when TLS terminates upstream.
+
 ## Authentication
 
 Fortify provides registration, login, email verification, password reset, password confirmation, two-factor authentication with recovery codes, and passkeys. The settings area supports profile updates, password changes, and appearance preferences.
@@ -63,7 +96,6 @@ One deployable Laravel application with explicit module boundaries:
 ```text
 app/                      Host glue: base controller, middleware, service provider
 modules/Identity/         Users, auth, passkeys, 2FA, profile and security settings
-modules/Billing/          Invoices; reference module consuming Identity\Contracts\UserDirectory
 bootstrap/providers.php   Registers host and module service providers
 routes/web.php            Host routes (home, dashboard)
 resources/js/             React pages, layouts, components, generated Wayfinder code
