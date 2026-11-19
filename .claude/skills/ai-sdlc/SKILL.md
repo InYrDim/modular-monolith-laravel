@@ -10,7 +10,7 @@ Based on Anthropic's AI-native SDLC playbook. Every stage ends by committing an 
 
 ## 0. Size the work
 
-- **Small** (one obvious change, ≤ ~3 files, no schema/auth/boundary impact): skip to step 4 and use plan mode in-session; no artifacts.
+- **Small** (one obvious change, ≤ ~3 files, no schema/auth/boundary impact): skip to step 4 after the user approves a short plan written in chat; no artifacts.
 - **Substantial** (new module, migration, cross-module contract, auth/security, multi-step UI flow): run every step. Stop at each human gate.
 
 ## 1. Intent — `intent.md` (gate: product owner)
@@ -23,7 +23,7 @@ Read the accepted `intent.md`, `.ai/rules/modular-monolith.md`, and `docs/archit
 
 ## 3. Plan — `plan.md` (gate: engineer)
 
-Enter plan mode and read the codebase without editing. Decide the home (host vs. module, rule "Adding a feature" step 1). Ask the engineer about anything the code does not answer. Fill `templates/plan.md` with exact files, order of work, risks, and **Proof**: the tests that will be written and the commands that must pass. Answer "what could break?" and "what is the riskiest step?" in Risks. Stop for approval, then commit intent/spec/plan before writing code.
+Read the codebase without editing (plan mode is disabled in `.claude/settings.json`, so stay read-only by discipline). Decide the home (host vs. module, rule "Adding a feature" step 1). Ask the engineer about anything the code does not answer. Fill `templates/plan.md` with exact files, order of work, risks, and **Proof**: the tests that will be written and the commands that must pass. Answer "what could break?" and "what is the riskiest step?" in Risks. Stop for approval, then commit intent/spec/plan before writing code.
 
 ## 4. Build
 
@@ -33,7 +33,7 @@ Implement the plan in order. Follow `.ai/rules/` and the domain skills. Where pr
 
 ## 5. Verify (before saying "done")
 
-Delegate to the `verifier` subagent (or `/fix-until-green` when several gates are red), or run the checks yourself:
+Delegate to the `verifier` subagent, or run the checks yourself:
 
 ```bash
 vendor/bin/pint --dirty --format agent
@@ -45,7 +45,7 @@ Paste the real result. If a check fails, fix it and rerun. Never report done on 
 
 ## 6. Review and ship
 
-Run `/review-branch` locally and fix any Important findings. Then open a PR from a feature branch (pushes to `main` are blocked by a hook). The PR body links the `docs/changes/<…>/` folder. The Claude review workflow checks the PR against `REVIEW.md`, `spec.md`, and `plan.md`. A human code owner approves the merge.
+Run the `boundary-reviewer` and `security-reviewer` subagents locally and fix any Important findings. Then open a PR from a feature branch (pushes to `main` are blocked by a hook). The PR body links the `docs/changes/<…>/` folder. The Claude review workflow checks the PR against `REVIEW.md`, `spec.md`, and `plan.md`. A human code owner approves the merge.
 
 ## 7. Close the loop
 
