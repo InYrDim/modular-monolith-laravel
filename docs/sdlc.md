@@ -14,7 +14,7 @@ intent.md ─► spec.md ─► plan.md ─► code + tests ─► verify ─►
 | -------- | ----------------------------------------------------------- | ------------------------------ |
 | Intent   | `docs/changes/<date>-<slug>/intent.md`                      | Product owner                  |
 | Spec     | `spec.md` with a mandatory **Concerns** table               | Product owner (+ tech lead)    |
-| Plan     | `plan.md` written in Claude Code plan mode                  | Engineer                       |
+| Plan     | `plan.md`, read-only exploration before any edit            | Engineer                       |
 | Build    | Code following `.ai/rules/` and skills; hooks as guardrails | —                              |
 | Verify   | `verifier` subagent / `composer test` + frontend checks     | Must be green before "done"    |
 | Review   | `claude-review` workflow using `REVIEW.md`                  | Code owner (branch protection) |
@@ -22,7 +22,7 @@ intent.md ─► spec.md ─► plan.md ─► code + tests ─► verify ─►
 
 Templates live in `.claude/skills/ai-sdlc/templates/`. Run `/ai-sdlc` in Claude Code (or describe a new feature) to start the flow.
 
-Small changes (one obvious edit, no schema, auth, or boundary impact) skip the artifacts but still start in plan mode.
+Small changes (one obvious edit, no schema, auth, or boundary impact) skip the artifacts but still start with a written plan in chat that the engineer approves before any edit.
 
 ## Where knowledge lives
 
@@ -32,7 +32,7 @@ Small changes (one obvious edit, no schema, auth, or boundary impact) skip the a
 - `.claude/hooks/` + `.claude/settings.json`: policies that must hold without exception (protected paths, no push to `main`, production gate, auto-format).
 - `.claude/agents/verifier.md`: the subagent that runs the quality gates and checks plan coverage.
 - `REVIEW.md`: what AI review checks, how findings are ranked, and what to ignore.
-- `.claude/agents/` + `.claude/workflows/`: worker roles and saved multi-agent workflows. See `docs/agent-orchestration.md`.
+- `.claude/agents/`: worker roles. See `docs/agent-orchestration.md`.
 
 ## One-time repository setup
 

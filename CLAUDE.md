@@ -8,11 +8,11 @@ Starting a product from this template? Follow `docs/getting-started.md` once.
 
 ## Workflow (AI-native SDLC)
 
-Substantial work goes intent → spec → plan → build → verify → review, with artifacts in `docs/changes/<YYYY-MM-DD>-<slug>/`. Use the `ai-sdlc` skill, and see `docs/sdlc.md`. Small changes skip the artifacts but still start in plan mode. Never implement before the plan is approved.
+Substantial work goes intent → spec → plan → build → verify → review, with artifacts in `docs/changes/<YYYY-MM-DD>-<slug>/`. Use the `ai-sdlc` skill, and see `docs/sdlc.md`. Small changes skip the artifacts but still start with a written plan in chat. Never implement before the plan is approved.
 
 ## Orchestration
 
-Default to one session. Delegate only independent work, and use `docs/agent-orchestration.md` to pick a subagent, workflow, or team. Subagents: `test-writer`, `boundary-reviewer`, `security-reviewer`, `verifier`. Workflows: `/review-branch`, `/fix-until-green`. Every delegation states its objective, output format, tools/sources, and boundaries (files owned). Parallel workers never edit the same files.
+Default to one session. Delegate only independent work, and use `docs/agent-orchestration.md` to pick a subagent or team. Subagents: `test-writer`, `boundary-reviewer`, `security-reviewer`, `verifier`. Plan mode and dynamic workflows are disabled in `.claude/settings.json`. Every delegation states its objective, output format, tools/sources, and boundaries (files owned). Parallel workers never edit the same files.
 
 ## Commands
 
