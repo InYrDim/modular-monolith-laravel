@@ -1,5 +1,10 @@
 {
     "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "env": {
+        "DISABLE_TELEMETRY": "1",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+        "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "false"
+    },
     "permissions": {
         "allow": [
             "Bash(php artisan test:*)",
@@ -14,7 +19,22 @@
             "Bash(php artisan wayfinder:generate:*)",
             "Bash(php artisan route:list:*)"
         ],
-        "deny": ["Read(./.env)", "Read(./.env.*)", "Read(./storage/*.key)"]
+        "deny": ["Read(./.env)", "Read(./.env.*)", "Read(./storage/*.key)",
+            "Artifact",
+            "EnterPlanMode",
+            "ExitPlanMode",
+            "DesignSync",
+            "NotebookEdit",
+            "SendMessage",
+            "PushNotification",
+            "RemoteTrigger",
+            "ReportFindings",
+            "ScheduleWakeup",
+            "AskUserQuestion",
+            "CronCreate",
+            "CronDelete",
+            "CronList",
+            "PowerShell" ]
     },
     "hooks": {
         "PreToolUse": [
@@ -48,5 +68,25 @@
                 ]
             }
         ]
-    }
+    },
+    "skillOverrides": {
+        "anthropic-skills:skill-creator": "off",
+        "anthropic-skills:docx": "off",
+        "anthropic-skills:google-workspace": "off",
+        "anthropic-skills:pdf": "off",
+        "anthropic-skills:pptx": "off",
+        "anthropic-skills:xlsx": "off",
+        "anthropic-skills:built-in-browser": "off",
+        "anthropic-skills:chrome-browser": "off",
+        "anthropic-skills:docs": "off",
+        "anthropic-skills:morning": "off",
+        "worktree-feature": "off"
+    },
+    "disableClaudeAiConnectors": true,
+    "disableBundledSkills": true,
+    "disableRemoteControl": true,
+    "disableWorkflows": true,
+    "disableArtifact": true,
+    "prefersReducedMotion": true,
+    "spinnerTipsEnabled": false
 }
