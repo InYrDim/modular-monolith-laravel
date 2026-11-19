@@ -10,14 +10,16 @@ Turn a clone of this template into a fresh product repository. The canonical gui
 
 ## 1. Own the code
 
-Copy the project out of the template directory and start a fresh git history:
+Start from a clean checkout of `main` (or GitHub's **Use this template**) and a fresh git history:
 
 ```bash
-cp -r modular-monolith-laravel my-product
+git clone --depth 1 https://github.com/InYrDim/modular-monolith-laravel.git my-product
 cd my-product
 rm -rf .git
 git init && git add -A && git commit -m "chore: initial commit from template"
 ```
+
+Never `cp -r` an existing checkout: it carries over `.env` and its `APP_KEY`, `vendor/`, `node_modules/`, and the SQLite database. `composer setup` creates a fresh `.env` and key.
 
 Keep the original history only if the template's commits are wanted; a fresh history makes `git blame` and migrations easier to reason about.
 
@@ -88,15 +90,6 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: evil.test' https://example.co
 
 A 200 on the second line means host trust is not in effect. A 400 on the first line means `APP_URL` does not match the host the load balancer sends.
 
-## Starting from a checkout that still has the Billing example module
+## Worked example
 
-If the checkout still contains the `Billing` example module, remove it together with its contract:
-
-```bash
-rm -rf modules/Billing resources/js/pages/billing
-rm -rf modules/Identity/src/Contracts modules/Identity/src/Queries
-composer dump-autoload
-php artisan wayfinder:generate --with-form && npm run build
-```
-
-Then remove the `IdentityServiceProvider::register()` binding, the `Billing` PSR-4 entries in `composer.json`, `BillingServiceProvider` from `bootstrap/providers.php`, and the `Billing` mentions in `docs/` and `README.md`.
+`main` ships no demo code. The `example/billing` branch is `main` plus one commit with a `Billing` module that reads users through an Identity contract. Point the user to `git diff main origin/example/billing` for reference; never merge or cherry-pick it into a product. If a checkout was made from `example/billing` by mistake, start again from `main` instead of deleting the example by hand.

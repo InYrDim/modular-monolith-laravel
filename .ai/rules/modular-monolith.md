@@ -18,7 +18,7 @@ The host is a composition root; domain code lives in `modules/<Name>`. See `docs
 
 ## Starting a product
 
-This repository began as a template and was cleaned on day one: no `Billing` example module, no seeded test user, no placeholder tests. Do not reintroduce demo modules. `git log` keeps the `Billing` reference implementation if a worked cross-module example is needed.
+`main` is the clean template: no example module, no seeded test user, no placeholder tests. Never add demo code to `main` or to a product built from it. The worked cross-module example (`Billing` reading users through an Identity contract) lives only on the `example/billing` branch; read it with `git diff main origin/example/billing` when a reference is needed, and never merge or cherry-pick it.
 
 ## Boundaries
 

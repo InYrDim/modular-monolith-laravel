@@ -113,6 +113,8 @@ Boundary rules:
 
 See [docs/architecture/modules.md](docs/architecture/modules.md) for the full layout and the new-module checklist. Agent instructions live in [.ai/rules/modular-monolith.md](.ai/rules/modular-monolith.md), indexed by `.ai/rules/index.md`; `AGENTS.md` points agents there.
 
+`main` ships no demo code. For a worked cross-module example (a `Billing` module reading users through an Identity contract), see the `example/billing` branch: `git diff main origin/example/billing`.
+
 ### Adding a feature
 
 - Cross-cutting glue stays in the host: controllers under `app/Http/Controllers`, routes in `routes/web.php`, pages in `resources/js/pages/<area>/`, tests in `tests/Feature/`.
