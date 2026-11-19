@@ -54,6 +54,8 @@ The skill directories are duplicated per tool on purpose. Update them together w
 | Queue    | `database`          | Redis; run a worker and a scheduler            |
 | Mail     | `log`               | A real provider with a verified sending domain |
 
+Deploying with containers? The `Dockerfile` and `compose.yaml` are a general production starting point (FrankenPHP, plus web, queue, and scheduler roles); see the README "Docker" section.
+
 ## 7. First run
 
 ```bash

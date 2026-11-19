@@ -1,0 +1,68 @@
+# Runs the production image locally: web, queue worker, and scheduler on SQLite.
+#   APP_KEY=base64:... docker compose up -d --build
+# Postgres + Redis: add `-f compose.yaml -f compose.postgres.yaml`.
+# Local overrides (port, APP_URL, mail, ...): create compose.override.yaml.
+
+x-app: &app
+    image: ${APP_IMAGE:-modular-monolith-laravel}:latest
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+        APP_KEY: ${APP_KEY:?Set APP_KEY, e.g. APP_KEY=$(php artisan key:generate --show)}
+        APP_ENV: production
+        APP_DEBUG: 'false'
+        APP_URL: http://localhost:8080
+        LOG_CHANNEL: stderr
+        LOG_LEVEL: info
+        DB_CONNECTION: sqlite
+        DB_DATABASE: /app/storage/database/database.sqlite
+        SESSION_DRIVER: database
+        CACHE_STORE: database
+        QUEUE_CONNECTION: database
+        MAIL_MAILER: log
+    volumes:
+        - storage:/app/storage
+
+services:
+    migrate:
+        <<: *app
+        command: ['php', 'artisan', 'migrate', '--force', '--no-interaction']
+        restart: 'no'
+        healthcheck:
+            disable: true
+
+    app:
+        <<: *app
+        # Only this service builds; the others reuse its image.
+        build:
+            context: .
+            target: production
+        pull_policy: missing
+        ports:
+            - '8080:8080'
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+    queue:
+        <<: *app
+        command:
+            ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600']
+        stop_signal: SIGTERM
+        healthcheck:
+            disable: true
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+    scheduler:
+        <<: *app
+        command: ['php', 'artisan', 'schedule:work']
+        healthcheck:
+            disable: true
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+volumes:
+    storage:
