@@ -96,6 +96,7 @@ One deployable Laravel application with explicit module boundaries:
 ```text
 app/                      Host glue: base controller, middleware, service provider
 modules/Identity/         Users, auth, passkeys, 2FA, profile and security settings
+modules/Billing/          Invoices; reference module consuming Identity\Contracts\UserDirectory
 bootstrap/providers.php   Registers host and module service providers
 routes/web.php            Host routes (home, dashboard)
 resources/js/             React pages, layouts, components, generated Wayfinder code

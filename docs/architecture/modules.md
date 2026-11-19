@@ -4,11 +4,12 @@ This application is a modular monolith: a single Laravel codebase, one deploymen
 
 ## Modules
 
-| Module     | Responsibility                                                                                      | Public contracts |
-| ---------- | --------------------------------------------------------------------------------------------------- | ---------------- |
-| `Identity` | Authentication (Fortify), users, passkeys, two-factor authentication, profile and security settings | None yet         |
+| Module     | Responsibility                                                                                      | Public contracts          |
+| ---------- | --------------------------------------------------------------------------------------------------- | ------------------------- |
+| `Identity` | Authentication (Fortify), users, passkeys, two-factor authentication, profile and security settings | `Contracts\UserDirectory` |
+| `Billing`  | Invoices; reference implementation of a second module (`example/billing` branch only)               | None                      |
 
-Modules expose code to other modules only through their `src/Contracts` namespace. `Identity` has no consumers outside the host composition root, so it has no contracts yet. A worked cross-module example, a `Billing` module consuming an Identity contract, lives on the `example/billing` branch, never on `main`.
+Modules expose code to other modules only through their `src/Contracts` namespace. `Billing` reads user summaries through `Modules\Identity\Contracts\UserDirectory` and stores only the owning user's id, which makes it the reference for a cross-module read. This branch is the worked example; it never merges into `main`.
 
 ## Layout
 
