@@ -1,17 +1,19 @@
 # Starting a project from this template
 
-This repository is a modular-monolith starter. This branch is already cleaned for a real project: the `Billing` example module, the seeded test user, and the placeholder tests are gone. Do the remaining steps once, before product code.
+This repository is a modular-monolith template. `main` ships no demo code: no example module, no seeded test user, no placeholder tests. A worked cross-module example lives on the `example/billing` branch (see [Worked example](#worked-example)). Do the steps below once, before product code.
 
 ## 1. Own the code
 
-Copy the project instead of building inside the template directory, and start a fresh history:
+Start from a clean checkout of `main`, not from a copy of a working directory, and start a fresh history:
 
 ```bash
-cp -r modular-monolith-laravel my-product
+git clone --depth 1 https://github.com/InYrDim/modular-monolith-laravel.git my-product
 cd my-product
 rm -rf .git
 git init && git add -A && git commit -m "chore: initial commit from template"
 ```
+
+GitHub's **Use this template** button does the same in one step. Do not `cp -r` an existing checkout: it copies `.env` (and its `APP_KEY`), `vendor/`, `node_modules/`, and the SQLite database into the new product. `composer setup` creates a fresh `.env` from `.env.example` and generates a new key.
 
 Keep the original history only if you want the template's commits; a fresh history makes `git blame` and migrations easier to reason about.
 
@@ -93,15 +95,13 @@ A 200 on the second line means host trust is not in effect — usually because `
 - **Events implementation.** The cross-module event convention is documented, but no event, listener, or outbox exists until a module needs one.
 - **A shared module kernel.** Provider boilerplate is duplicated per module on purpose; revisit at four or five modules.
 
-## Starting from the template's `main` branch instead
+## Worked example
 
-If your checkout still contains the `Billing` example module, remove it together with its contract — the consumer is what justified the contract:
+The `example/billing` branch is `main` plus one commit: a `Billing` module that lists invoices with their owner's name, reading users through an Identity contract (`UserDirectory` returning a `UserSummary` DTO) instead of Identity's models. It shows a consumer-driven contract, its binding in the owning module's provider, and a module page under `resources/js/pages/billing/`.
 
 ```bash
-rm -rf modules/Billing resources/js/pages/billing
-rm -rf modules/Identity/src/Contracts modules/Identity/src/Queries
-composer dump-autoload
-php artisan wayfinder:generate --with-form && npm run build
+git fetch origin example/billing
+git diff main origin/example/billing   # the whole example in one diff
 ```
 
-Then remove the `IdentityServiceProvider::register()` binding, the `Billing` PSR-4 entries in `composer.json`, `BillingServiceProvider` from `bootstrap/providers.php`, and the `Billing` mentions in `docs/` and `README.md`.
+Read it for reference; never merge it into a product. Template maintainers keep it current by rebasing it onto `main` after every change to `main`, so it stays exactly one commit ahead.

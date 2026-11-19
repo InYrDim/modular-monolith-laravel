@@ -1,7 +1,7 @@
 # Unit tests
 
-This template ships without unit tests on purpose (see `AGENTS.md`: no
-placeholder tests). The `Unit` testsuite exists in `phpunit.xml` so the
+This template ships without unit tests on purpose (see
+`.ai/rules/modular-monolith.md`: no placeholder tests). The `Unit` testsuite exists in `phpunit.xml` so the
 directory does not have to be created before the first unit test lands.
 
 Unit tests placed here run on PHPUnit's `TestCase` and get no application
